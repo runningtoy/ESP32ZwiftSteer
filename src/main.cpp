@@ -47,6 +47,7 @@ bool auth = false;
 double pitch, roll;
 double r_rand = 180 / PI;
 
+float angle = 20;
 int FF = 0xFF;
 uint8_t authChallenge[4] = {0x03, 0x10, 0xff, 0xff};
 uint8_t authSuccess[3] = {0x03, 0x11, 0xff};
@@ -78,8 +79,9 @@ class MyServerCallbacks: public BLEServerCallbacks {
     }
 };
 
-void readAngle() {
+int readAngle() {
     M5.IMU.getAttitude(&pitch, &roll);
+    return pitch;
    // Serial.printf("%.2f,%.2\r\n", pitch, roll);
 }
 
@@ -140,7 +142,10 @@ void setup() {
 }
 
 // void loop() {
-//   readAngle();
+//       angle = readAngle();
+//       Serial.print("Transmitting angle: ");
+//       Serial.println(angle);
+      
 //   delay(100);
 // }
 
@@ -148,10 +153,10 @@ void loop() {
   if (deviceConnected) {
     if (auth) {
       //Connected to Zwift so read the potentiometer and start transmitting the angle
-      readAngle();
+      angle = readAngle();
       Serial.print("Transmitting angle: ");
-      Serial.println(pitch);
-      pAngle->setValue(pitch);
+      Serial.println(angle);
+      pAngle->setValue(angle);
       pAngle->notify();
       delay(500);
     } else {
