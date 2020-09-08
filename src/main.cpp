@@ -138,7 +138,8 @@ void setup() {
   Serial.println("Starting advertiser...");
   BLEDevice::startAdvertising();
   Serial.println("Waiting a client connection to notify...");
-  
+  M5.dis.drawpix(2,2, 0x707070);
+  M5.update();
 }
 
 // void loop() {
@@ -159,7 +160,11 @@ void loop() {
       pAngle->setValue(angle);
       pAngle->notify();
       delay(500);
+      M5.dis.drawpix(2,2, 0x0000f0);
+      M5.update();
     } else {
+      M5.dis.drawpix(2,2, 0x00f000);
+      M5.update();
       //Not connected to Zwift so start the connectin process
       pTx->setValue(FF);
       pTx->indicate();
