@@ -80,7 +80,7 @@ class MyServerCallbacks: public BLEServerCallbacks {
 
 void readAngle() {
     M5.IMU.getAttitude(&pitch, &roll);
-    Serial.printf("%.2f,%.2f\n", pitch, roll);
+   // Serial.printf("%.2f,%.2\r\n", pitch, roll);
 }
 
 void setup() {
@@ -139,18 +139,19 @@ void setup() {
   
 }
 
-void loop() {
-  readAngle();
-  delay(100);
-}
+// void loop() {
+//   readAngle();
+//   delay(100);
+// }
 
-void loop_BLE() {
+void loop() {
   if (deviceConnected) {
     if (auth) {
       //Connected to Zwift so read the potentiometer and start transmitting the angle
+      readAngle();
       Serial.print("Transmitting angle: ");
-      Serial.println(roll);
-      pAngle->setValue(roll);
+      Serial.println(pitch);
+      pAngle->setValue(pitch);
       pAngle->notify();
       delay(500);
     } else {
