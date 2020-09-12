@@ -25,7 +25,9 @@
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
-#include "M5Atom.h"
+#include "imu.h"
+#include <Ticker.h>
+
 
 #define STEERING_DEVICE_UUID "347b0001-7635-408b-8918-8ff3949ce592"
 #define STEERING_ANGLE_CHAR_UUID "347b0030-7635-408b-8918-8ff3949ce592"     //notify
@@ -39,6 +41,14 @@
 #define STEERING_RX_CHAR_UUID "347b0031-7635-408b-8918-8ff3949ce592"  //write
 #define STEERING_TX_CHAR_UUID "347b0032-7635-408b-8918-8ff3949ce592"  //indicate
 
+#define POWERLATCH 23
+#define LED 19
+
+Ticker watchDOG;
+#define watchdogMAXCounter 15 * 60 // 60minuten
+static uint32_t watchdogCounter = watchdogMAXCounter;
+
+int old_angle=0;
 
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
@@ -79,19 +89,43 @@ class MyServerCallbacks: public BLEServerCallbacks {
     }
 };
 
-int readAngle() {
-    M5.IMU.getAttitude(&pitch, &roll);
-    return pitch;
-   // Serial.printf("%.2f,%.2\r\n", pitch, roll);
+
+
+void setupPWR(){
+  pinMode(POWERLATCH, OUTPUT);
+  // pinMode(LED, OUTPUT);
+  // Keeps the circuit on
+  digitalWrite(POWERLATCH, HIGH);
+  // digitalWrite(LED, HIGH);
+
+  ledcAttachPin(LED, 0);
+  ledcSetup(0, 4000, 8); 
+  ledcWrite(0, 10);
+}
+
+void fct_powerdown(){
+  digitalWrite(POWERLATCH, LOW);
+  digitalWrite(LED, LOW);
+}
+
+void fct_Watchdog() {
+  watchdogCounter--;
+  Serial.println("Watchdog COunter:");
+  Serial.println(watchdogCounter);
+  if (watchdogCounter < 1) {
+    fct_powerdown();
+  }
 }
 
 void setup() {
+  setupPWR();
  
   //setup pins for Pot
-  M5.begin(true, true, true);
-  M5.IMU.Init();
+ 
 
   Serial.begin(115200);
+  imu_setup();
+  watchDOG.attach(1, fct_Watchdog);
   //Setup BLE
   Serial.println("Creating BLE server...");
   BLEDevice::init("STEERING");
@@ -138,12 +172,10 @@ void setup() {
   Serial.println("Starting advertiser...");
   BLEDevice::startAdvertising();
   Serial.println("Waiting a client connection to notify...");
-  M5.dis.drawpix(2,2, 0x707070);
-  M5.update();
 }
 
 // void loop() {
-//       angle = readAngle();
+//       angle = getCurrentAngle();
 //       Serial.print("Transmitting angle: ");
 //       Serial.println(angle);
       
@@ -154,17 +186,17 @@ void loop() {
   if (deviceConnected) {
     if (auth) {
       //Connected to Zwift so read the potentiometer and start transmitting the angle
-      angle = readAngle();
+      angle = getCurrentAngle();
+      if(abs(angle-old_angle)>2){
+        watchdogCounter=watchdogMAXCounter;
+      }
+      old_angle=angle;
       Serial.print("Transmitting angle: ");
       Serial.println(angle);
       pAngle->setValue(angle);
       pAngle->notify();
       delay(500);
-      M5.dis.drawpix(2,2, 0x0000f0);
-      M5.update();
     } else {
-      M5.dis.drawpix(2,2, 0x00f000);
-      M5.update();
       //Not connected to Zwift so start the connectin process
       pTx->setValue(FF);
       pTx->indicate();
