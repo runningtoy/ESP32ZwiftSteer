@@ -16,8 +16,11 @@
 - enable DEBUG (#define DEBUG)
 - steer full left/full right -> note ADC value and enter hier 
 */
-#define MAX_ADC_LEFT 1850
-#define MAX_ADC_RIGHT 2900
+// #define MAX_ADC_LEFT 1850
+// #define MAX_ADC_RIGHT 2900
+int MAX_ADC_LEFT=5000;
+int MAX_ADC_RIGHT=0;
+
 
 Ticker watchDOG;
 #define watchdogMAXCounter 60*15 // 60minuten
@@ -105,7 +108,13 @@ float readAngle()
     int potVal = analogRead(POT);
     
     // angle = map(potVal,0,MAX_ADC_RESOLUTION,-35,35); //Mapping function
-    angle = map(potVal,MAX_ADC_LEFT,2900,MAX_STEER_ANGLE,-1*MAX_STEER_ANGLE); //Mapping function
+    if(potVal>MAX_ADC_RIGHT)
+      MAX_ADC_RIGHT=potVal;
+
+    if(potVal<MAX_ADC_LEFT)
+      MAX_ADC_LEFT=potVal;
+    
+    angle = map(potVal,MAX_ADC_LEFT,MAX_ADC_RIGHT,MAX_STEER_ANGLE,-1*MAX_STEER_ANGLE); //Mapping function
     
     
     // kwakeham style:

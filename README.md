@@ -24,7 +24,7 @@ https://github.com/kwakeham/zwift-steerer/
 
 
 ## setup
-adapt the values (MAX_ADC_LEFT/MAX_ADC_RIGHT) in the code to your setup 
+nothing - autosetup -> just steer max left and max right on every start
 
 - enable DEBUG (#define DEBUG)
 - steer full left/full right -> note ADC value and enter the values next to #defines 
