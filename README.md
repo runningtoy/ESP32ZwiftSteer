@@ -13,6 +13,7 @@ https://sourceforge.net/projects/zwift-steering-esp32/
 
 thx to Keith Wakeham for his 3D printed parts
 https://github.com/kwakeham/zwift-steerer/
+Modifications see Hardware Folder
 
 
 ## BOM
